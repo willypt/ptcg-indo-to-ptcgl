@@ -198,7 +198,7 @@ const map = {
   })),
 };
 await writeFile("data/map.json", JSON.stringify(map));
-await writeFile("web/map.json", JSON.stringify(map));
+await writeFile("docs/map.json", JSON.stringify(map));
 
 // Human-readable report.
 const count = (s: Status) => rows.filter((r) => r.status === s).length;

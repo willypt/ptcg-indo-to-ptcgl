@@ -2,7 +2,7 @@
 
 Maps every Standard-legal **Indonesian** Pokémon TCG print (regulation marks H, I, J) to its **English** counterpart, the card you'd use in Pokémon TCG Live, and back.
 
-- `web/`: a static page that converts deck lists both ways, lets you browse the mapping, and shows coverage. No server needed.
+- `docs/`: a static page (served on GitHub Pages at https://willypt.github.io/ptcg-indo-to-ptcgl/) that converts deck lists both ways, lets you browse the mapping, and shows coverage. No server needed.
 - `data/map.json`: the mapping itself, for anyone who wants to use it in their own tools.
 - `data/report.md`: match rate and every card that didn't match automatically, with the reason.
 
@@ -41,8 +41,8 @@ Requires [Bun](https://bun.sh).
 ```sh
 bun run scrape:id   # Indonesian Standard cards → data/id-cards.json (~20 min first run, cached after)
 bun run fetch:en    # English H/I/J cards → data/en-cards.json
-bun run build       # match → data/map.json, web/map.json, data/report.md
-bun run dev         # serve web/ locally
+bun run build       # match → data/map.json, docs/map.json, data/report.md
+bun run dev         # serve docs/ locally
 ```
 
 When a new Indonesian set releases, re-run all three steps. Any new trainer names show up as `unmatched` in `data/report.md`. Add them to `data/trainer-names.json` and run `build` again.

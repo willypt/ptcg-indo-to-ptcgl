@@ -7,6 +7,6 @@
     "fetch:en": "bun scripts/fetch-en.ts",
     "build": "bun scripts/build-map.ts",
     "all": "bun run scrape:id && bun run fetch:en && bun run build",
-    "dev": "bunx serve web"
+    "dev": "bunx serve docs"
   }
 }
