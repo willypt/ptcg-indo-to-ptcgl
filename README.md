@@ -2,7 +2,7 @@
 
 Maps every Standard-legal **Indonesian** Pokémon TCG print (regulation marks H, I, J) to its **English** counterpart, the card you'd use in Pokémon TCG Live, and back.
 
-- `docs/`: a static page (served on GitHub Pages at http://wastory.willypt.com/ptcg-indo-to-ptcgl/) that converts deck lists both ways, lets you browse the mapping, and shows coverage. No server needed.
+- `docs/`: a static page (served on GitHub Pages at https://willypt.github.io/ptcg-indo-to-ptcgl/) that converts deck lists both ways, lets you browse the mapping, and shows coverage. No server needed.
 - `data/map.json`: the mapping itself, for anyone who wants to use it in their own tools.
 - `data/report.md`: match rate and every card that didn't match automatically, with the reason.
 
