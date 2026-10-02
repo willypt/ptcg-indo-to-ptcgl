@@ -1,0 +1,26 @@
+{
+  "owners": {
+    "Tim Roket": "Team Rocket",
+    "Mistika": "Iono",
+    "Arvin": "Arven",
+    "Dafin": "Larry"
+  },
+  "pokemon": {
+    "Clefairy Lillie": "Lillie's Clefairy",
+    "Kyurem Hitam": "Black Kyurem",
+    "Kyurem Putih": "White Kyurem",
+    "Castform Wujud Matahari": "Castform Sunny Form",
+    "Castform Wujud Hujan": "Castform Rainy Form",
+    "Castform Wujud Salju": "Castform Snowy Form",
+    "Ogerpon Topeng Teal": "Teal Mask Ogerpon",
+    "Ogerpon Topeng Sumur": "Wellspring Mask Ogerpon",
+    "Ogerpon Topeng Tungku": "Hearthflame Mask Ogerpon",
+    "Ogerpon Topeng Fondasi": "Cornerstone Mask Ogerpon",
+    "Rotom Cuci": "Wash Rotom",
+    "Rotom Kipas": "Fan Rotom",
+    "Rotom Panas": "Heat Rotom",
+    "Rotom Pemotong": "Mow Rotom",
+    "Rotom Beku": "Frost Rotom",
+    "Ursaluna Bulan Merah": "Bloodmoon Ursaluna"
+  }
+}

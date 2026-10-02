@@ -1,0 +1,15 @@
+{
+  "_comment": "Indonesian print (set + collector number) → English card id, for look-alikes the matcher can't tell apart. Checked by reading both effect texts.",
+  "M-P 164": "30th-053",
+  "MA6 053": "30th-053",
+  "MA6 155": "30th-053",
+  "MA3 032": "me02.5-039",
+  "MA3 199": "me02.5-039",
+  "SV-P 255": "me02.5-039",
+  "MA6 001": "30th-001",
+  "MA6 009": "30th-009",
+  "MA6 029": "30th-029",
+  "MA6 045": "30th-045",
+  "MA6 046": "30th-046",
+  "MA6 047": "30th-047"
+}

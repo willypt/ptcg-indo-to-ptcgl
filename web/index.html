@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kartu ID ⇄ EN</title>
+<meta name="description" content="Convert Indonesian Pokémon TCG cards (regulation H, I, J) to their English / PTCG Live counterparts and back.">
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1c1c1a; --muted: #6b6b66; --border: #e3e2dd;
+    --accent: #c2410c; --accent-soft: #fff1e8; --ok: #15803d; --ok-soft: #e9f7ee;
+    --warn: #a16207; --warn-soft: #fdf6e3; --bad: #b91c1c; --bad-soft: #fdecec;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151514; --surface: #1e1e1c; --text: #ededea; --muted: #9c9c96; --border: #34342f;
+      --accent: #fb923c; --accent-soft: #3a2416; --ok: #4ade80; --ok-soft: #16301f;
+      --warn: #facc15; --warn-soft: #332b10; --bad: #f87171; --bad-soft: #3a1a1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151514; --surface: #1e1e1c; --text: #ededea; --muted: #9c9c96; --border: #34342f;
+    --accent: #fb923c; --accent-soft: #3a2416; --ok: #4ade80; --ok-soft: #16301f;
+    --warn: #facc15; --warn-soft: #332b10; --bad: #f87171; --bad-soft: #3a1a1a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 64px; }
+  header h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); }
+  nav { display: flex; gap: 4px; margin: 20px 0 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  nav button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; font: inherit; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  nav button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  .panel[hidden] { display: none; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  label.h { display: block; font-weight: 600; margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 320px; resize: vertical; font: 13px/1.5 var(--mono); padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  input[type="search"] { width: 100%; font: inherit; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: var(--surface); color: var(--muted); padding: 7px 12px; font: inherit; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 7px 12px; border-radius: 8px; font: inherit; cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .issues { margin-top: 12px; font-size: 13px; }
+  .issues li { margin: 2px 0; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; }
+  .b-matched { background: var(--ok-soft); color: var(--ok); }
+  .b-ambiguous { background: var(--warn-soft); color: var(--warn); }
+  .b-unmatched { background: var(--bad-soft); color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  td img { width: 44px; border-radius: 3px; display: block; }
+  .code { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat .n { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+  footer { margin-top: 32px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Kartu ID ⇄ EN</h1>
+    <p>Indonesian Pokémon TCG cards (regulation H · I · J) mapped to their English / PTCG Live counterparts.</p>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="convert">Convert deck list</button>
+    <button role="tab" aria-selected="false" data-tab="browse">Browse cards</button>
+    <button role="tab" aria-selected="false" data-tab="coverage">Coverage</button>
+  </nav>
+
+  <section class="panel" id="convert">
+    <div class="row">
+      <div class="seg" id="dir">
+        <button aria-pressed="true" data-dir="id2en">Indonesian → PTCG Live</button>
+        <button aria-pressed="false" data-dir="en2id">PTCG Live → Indonesian</button>
+      </div>
+      <button class="btn" id="sample">Load sample</button>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <label class="h" for="in">Input</label>
+        <textarea id="in" spellcheck="false" placeholder="4 Mega Gardevoir ex MA1 060&#10;4 Bola Nest&#10;…"></textarea>
+        <p class="muted" id="hint">One card per line: <code>count name [set number]</code>. Set and number are optional; name alone uses any print.</p>
+      </div>
+      <div class="card">
+        <label class="h" for="out">Output</label>
+        <textarea id="out" spellcheck="false" readonly></textarea>
+        <div class="row"><button class="btn primary" id="copy">Copy</button><span class="muted" id="summary"></span></div>
+        <ul class="issues" id="issues"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="browse" hidden>
+    <div class="row"><input type="search" id="q" placeholder="Search Indonesian or English name, set code…"></div>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th></th><th>Indonesian</th><th></th><th>English (PTCG Live)</th><th>Status</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="muted" id="more"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="coverage" hidden>
+    <div class="stats" id="stats"></div>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Set</th><th>No.</th><th>Name</th><th>Status</th><th>Reason</th></tr></thead>
+        <tbody id="gaps"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer id="foot">Loading data…</footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[’`]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
+const num = (n) => String(n ?? "").replace(/^0+(?=\d)/, "").toLowerCase();
+
+// PTCG Live writes basic energy as "Basic {R} Energy"; TCGdex names it "Fire Energy".
+const ENERGY_SYMBOL = { G: "Grass", R: "Fire", W: "Water", L: "Lightning", P: "Psychic", F: "Fighting", D: "Darkness", M: "Metal" };
+const enAlias = (name) => {
+  const m = name.match(/^basic\s+\{?([a-z]+)\}?\s+energy$/i);
+  if (!m) return name;
+  return `${ENERGY_SYMBOL[m[1].toUpperCase()] ?? m[1]} Energy`;
+};
+
+let DATA, groups;
+
+// Functional groups: Indonesian and English prints linked by a match are the same card in play.
+function buildGroups() {
+  const parent = new Map();
+  const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+  const add = (x) => { if (!parent.has(x)) parent.set(x, x); };
+  const union = (a, b) => { add(a); add(b); parent.set(find(a), find(b)); };
+  DATA.id.forEach((c, i) => { add("id:" + i); if (c.status === "matched") c.en.forEach((e) => union("id:" + i, "en:" + e)); });
+  const g = new Map();
+  for (const k of parent.keys()) { const r = find(k); if (!g.has(r)) g.set(r, { id: [], en: [] }); const [t, v] = k.split(/:(.*)/); g.get(r)[t].push(t === "id" ? Number(v) : v); }
+  const of = new Map();
+  for (const grp of g.values()) { grp.id.forEach((i) => of.set("id:" + i, grp)); grp.en.forEach((e) => of.set("en:" + e, grp)); }
+  return of;
+}
+
+// Representative Indonesian print: plain name (not "Perintah Bos (Ghetsis)"),
+// main-set numbering rather than a secret rare, then the newest print.
+const isMainId = (c) => /^\d+$/.test(c.number) && (!c.of || Number(c.number) <= c.of);
+function pickId(ids) {
+  return [...ids].sort((a, b) => {
+    const A = DATA.id[a], B = DATA.id[b];
+    return (/\(/.test(A.name) - /\(/.test(B.name)) || (isMainId(B) - isMainId(A)) || b - a;
+  })[0];
+}
+
+function parseLines(text) {
+  const out = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || /^(pok[eé]mon|trainer|energy|energi|total cards)\b.*:\s*\d*\s*$/i.test(line)) continue;
+    // Collector numbers can be letters too (Indonesian basic Energy: "SVTS PSY").
+    const m = line.match(/^(\d+)\s*x?\s+(.+?)(?:\s+([A-Za-z][A-Za-z0-9.\-]*)\s+([A-Za-z0-9\-]+))?\s*$/);
+    if (!m) { out.push({ raw, error: "couldn't read this line" }); continue; }
+    out.push({ raw, count: Number(m[1]), name: m[2], set: m[3], number: m[4] });
+  }
+  return out;
+}
+
+// Set + number wins only when the name agrees; otherwise fall back to the name,
+// since a typo in the number shouldn't silently swap the card.
+// (A line without set/number may still have been split as if it had one, so try the full text too.)
+function findId(l) {
+  const idx = DATA.id.map((c, i) => i);
+  const names = [norm(l.name), norm([l.name, l.set, l.number].filter(Boolean).join(" "))];
+  const named = idx.filter((i) => names.includes(norm(DATA.id[i].name)));
+  if (l.set) {
+    const hit = named.find((i) => DATA.id[i].set.toLowerCase() === l.set.toLowerCase() && num(DATA.id[i].number) === num(l.number));
+    if (hit !== undefined) return hit;
+  }
+  return named.find((i) => DATA.id[i].status === "matched") ?? named[0];
+}
+
+function findEn(l) {
+  const names = [norm(enAlias(l.name)), norm(enAlias([l.name, l.set, l.number].filter(Boolean).join(" ")))];
+  const named = Object.entries(DATA.en).filter(([, e]) => names.includes(norm(e.name)));
+  if (l.set) {
+    const hit = named.find(([, e]) => (e.set ?? "").toLowerCase() === l.set.toLowerCase() && num(e.number) === num(l.number));
+    if (hit) return hit[0];
+  }
+  return named[0]?.[0];
+}
+
+const CAT_ORDER = ["Pokemon", "Trainer", "Energy"];
+const CAT_LABEL = { id2en: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" }, en2id: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energi" } };
+
+function convert() {
+  const dir = document.querySelector("#dir [aria-pressed=true]").dataset.dir;
+  const lines = parseLines($("#in").value);
+  const result = new Map(); // key -> {count, text, cat}
+  const issues = [];
+  for (const l of lines) {
+    if (l.error) { issues.push(`${l.raw} — ${l.error}`); continue; }
+    if (dir === "id2en") {
+      const i = findId(l);
+      if (i === undefined) { issues.push(`${l.raw} — not an Indonesian Standard card (check the spelling)`); continue; }
+      const c = DATA.id[i];
+      if (c.status !== "matched") { issues.push(`${l.raw} — ${c.status}: ${c.reason}`); continue; }
+      const e = DATA.en[c.canonical];
+      const text = `${e.name} ${e.set} ${e.number}`;
+      const cur = result.get(text) ?? { count: 0, text, cat: c.category };
+      cur.count += l.count; result.set(text, cur);
+    } else {
+      const eid = findEn(l);
+      const grp = eid && groups.get("en:" + eid);
+      if (!eid) { issues.push(`${l.raw} — not an English Standard (H/I/J) card`); continue; }
+      if (!grp || !grp.id.length) { issues.push(`${l.raw} — no Indonesian print of this card yet`); continue; }
+      const c = DATA.id[pickId(grp.id)];
+      const text = `${c.name} ${c.set} ${c.number}`;
+      const cur = result.get(text) ?? { count: 0, text, cat: c.category };
+      cur.count += l.count; result.set(text, cur);
+    }
+  }
+  const out = [];
+  for (const cat of CAT_ORDER) {
+    const items = [...result.values()].filter((r) => r.cat === cat);
+    if (!items.length) continue;
+    out.push(`${CAT_LABEL[dir][cat]}: ${items.reduce((s, r) => s + r.count, 0)}`);
+    items.forEach((r) => out.push(`${r.count} ${r.text}`));
+    out.push("");
+  }
+  const total = [...result.values()].reduce((s, r) => s + r.count, 0);
+  if (total) out.push(`Total Cards: ${total}`);
+  $("#out").value = out.join("\n");
+  $("#summary").textContent = lines.length ? `${total} cards converted${issues.length ? `, ${issues.length} line(s) need attention` : ""}` : "";
+  $("#issues").innerHTML = issues.map((s) => `<li>⚠︎ ${esc(s)}</li>`).join("");
+}
+
+function renderBrowse() {
+  const q = norm($("#q").value);
+  const rows = DATA.id.filter((c) => {
+    if (!q) return true;
+    const en = c.canonical ? DATA.en[c.canonical] : null;
+    return norm(`${c.name} ${c.set} ${c.number} ${en ? `${en.name} ${en.set} ${en.number}` : ""}`).includes(q);
+  });
+  const LIMIT = 150;
+  $("#rows").innerHTML = rows.slice(0, LIMIT).map((c) => {
+    const en = c.canonical ? DATA.en[c.canonical] : null;
+    const others = c.en.length > 1 ? `<div class="code">+${c.en.length - 1} other English print(s)</div>` : "";
+    return `<tr>
+      <td><img loading="lazy" src="${esc(c.image)}" alt=""></td>
+      <td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.name)}</a><div class="code">${esc(c.set)} ${esc(c.number)} · ${esc(c.mark)}</div></td>
+      <td>${en?.image ? `<img loading="lazy" src="${esc(en.image)}/low.webp" alt="">` : ""}</td>
+      <td>${en ? `${esc(en.name)}<div class="code">${esc(en.set)} ${esc(en.number)} · ${esc(en.setName)}</div>${others}` : `<span class="muted">${esc(c.reason)}</span>`}</td>
+      <td><span class="badge b-${c.status}">${c.status}</span></td>
+    </tr>`;
+  }).join("");
+  $("#more").textContent = rows.length > LIMIT ? `Showing ${LIMIT} of ${rows.length}. Refine the search to see more.` : `${rows.length} card(s)`;
+}
+
+function renderCoverage() {
+  const total = DATA.id.length;
+  const n = (s) => DATA.id.filter((c) => c.status === s).length;
+  const pct = (x) => `${((x / total) * 100).toFixed(1)}%`;
+  $("#stats").innerHTML = [
+    ["Indonesian prints", total, ""],
+    ["Matched", n("matched"), pct(n("matched"))],
+    ["Ambiguous", n("ambiguous"), pct(n("ambiguous"))],
+    ["Unmatched", n("unmatched"), pct(n("unmatched"))],
+  ].map(([l, v, p]) => `<div class="card stat"><div class="muted">${l}</div><div class="n">${v}</div><div class="muted">${p}</div></div>`).join("");
+  $("#gaps").innerHTML = DATA.id.filter((c) => c.status !== "matched").map((c) =>
+    `<tr><td class="code">${esc(c.set)}</td><td class="code">${esc(c.number)}</td><td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.name)}</a></td><td><span class="badge b-${c.status}">${c.status}</span></td><td class="muted">${esc(c.reason)}</td></tr>`
+  ).join("");
+}
+
+const SAMPLES = {
+  id2en: "Pokémon: 13\n4 Ralts\n3 Kirlia\n2 Mega Gardevoir ex MA1 060\n2 Lunatone\n2 Solrock\n\nTrainer: 10\n4 Bola Ultra\n4 Perintah Bos\n2 Iron Defender\n\nEnergi: 7\n7 Energi Dasar Psychic",
+  en2id: "Pokémon: 8\n3 Dreepy TWM 128\n2 Drakloak TWM 129\n2 Dragapult ex TWM 130\n1 Fezandipiti ex SFA 38\n\nTrainer: 10\n4 Rare Candy MEG 125\n2 Boss's Orders MEG 114\n4 Ultra Ball MEG 131\n\nEnergy: 5\n3 Basic {R} Energy SVE 2\n2 Basic {P} Energy SVE 5",
+};
+
+document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach((x) => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll(".panel").forEach((p) => (p.hidden = p.id !== b.dataset.tab));
+}));
+document.querySelectorAll("#dir button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("#dir button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  convert();
+}));
+$("#sample").addEventListener("click", () => { $("#in").value = SAMPLES[document.querySelector("#dir [aria-pressed=true]").dataset.dir]; convert(); });
+$("#in").addEventListener("input", convert);
+$("#q").addEventListener("input", renderBrowse);
+$("#copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#out").value); $("#copy").textContent = "Copied"; setTimeout(() => ($("#copy").textContent = "Copy"), 1200); } catch {} });
+
+fetch("map.json").then((r) => r.json()).then((d) => {
+  DATA = d;
+  groups = buildGroups();
+  renderBrowse();
+  renderCoverage();
+  $("#foot").innerHTML = `Data generated ${esc(new Date(d.generatedAt).toLocaleString())}. Indonesian data: <a href="https://asia.pokemon-card.com/id/card-search/" target="_blank" rel="noopener">Pokémon Asia</a>. English data: <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a>. Unofficial fan tool.`;
+}).catch((e) => { $("#foot").textContent = `Couldn't load map.json: ${e}`; });
+</script>
+</body>
+</html>
