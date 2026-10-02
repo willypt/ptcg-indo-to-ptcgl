@@ -89,7 +89,7 @@
       <div class="card">
         <label class="h" for="in">Input</label>
         <textarea id="in" spellcheck="false" placeholder="4 Mega Gardevoir ex MA1 060&#10;4 Bola Nest&#10;…"></textarea>
-        <p class="muted" id="hint">One card per line: <code>count name [set number]</code>. Set and number are optional; name alone uses any print.</p>
+        <p class="muted" id="hint">One card per line: <code>count name [set number]</code>. Set and number are optional; name alone uses any print. The direction is detected from what you paste.</p>
       </div>
       <div class="card">
         <label class="h" for="out">Output</label>
@@ -170,7 +170,8 @@ function parseLines(text) {
     const line = raw.trim();
     if (!line || /^(pok[eé]mon|trainer|energy|energi|total cards)\b.*:\s*\d*\s*$/i.test(line)) continue;
     // Collector numbers can be letters too (Indonesian basic Energy: "SVTS PSY").
-    const m = line.match(/^(\d+)\s*x?\s+(.+?)(?:\s+([A-Za-z][A-Za-z0-9.\-]*)\s+([A-Za-z0-9\-]+))?\s*$/);
+    // Set codes can start with a digit ("30C").
+    const m = line.match(/^(\d+)\s*x?\s+(.+?)(?:\s+([A-Za-z0-9][A-Za-z0-9.\-]*)\s+([A-Za-z0-9\-]+))?\s*$/);
     if (!m) { out.push({ raw, error: "couldn't read this line" }); continue; }
     out.push({ raw, count: Number(m[1]), name: m[2], set: m[3], number: m[4] });
   }
@@ -204,7 +205,31 @@ function findEn(l) {
 const CAT_ORDER = ["Pokemon", "Trainer", "Energy"];
 const CAT_LABEL = { id2en: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" }, en2id: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energi" } };
 
-function convert() {
+function setDir(dir) {
+  document.querySelectorAll("#dir button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.dir === dir));
+}
+
+// Guess which side a pasted list is from: whichever language's set codes or card names it hits more.
+function detectDir(lines) {
+  let id = 0, en = 0;
+  const idSets = new Set(DATA.id.map((c) => c.set.toLowerCase()));
+  const enSets = new Set(Object.values(DATA.en).map((e) => (e.set ?? "").toLowerCase()));
+  for (const l of lines) {
+    if (l.error) continue;
+    const set = l.set?.toLowerCase();
+    if (set && idSets.has(set) && !enSets.has(set)) id++;
+    else if (set && enSets.has(set) && !idSets.has(set)) en++;
+    else if (findId(l) !== undefined && !findEn(l)) id++;
+    else if (findEn(l) && findId(l) === undefined) en++;
+  }
+  return en > id ? "en2id" : id > en ? "id2en" : null;
+}
+
+function convert(auto = false) {
+  if (auto) {
+    const guess = detectDir(parseLines($("#in").value));
+    if (guess) setDir(guess);
+  }
   const dir = document.querySelector("#dir [aria-pressed=true]").dataset.dir;
   const lines = parseLines($("#in").value);
   const result = new Map(); // key -> {count, text, cat}
@@ -215,6 +240,8 @@ function convert() {
       const i = findId(l);
       if (i === undefined) { issues.push(`${l.raw} — not an Indonesian Standard card (check the spelling)`); continue; }
       const c = DATA.id[i];
+      if (l.set && c.set.toLowerCase() !== l.set.toLowerCase() && c.category === "Pokemon")
+        issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${c.name} ${c.set} ${c.number}.`);
       if (c.status !== "matched") { issues.push(`${l.raw} — ${c.status}: ${c.reason}`); continue; }
       const e = DATA.en[c.canonical];
       const text = `${e.name} ${e.set} ${e.number}`;
@@ -225,6 +252,10 @@ function convert() {
       const grp = eid && groups.get("en:" + eid);
       if (!eid) { issues.push(`${l.raw} — not an English Standard (H/I/J) card`); continue; }
       if (!grp || !grp.id.length) { issues.push(`${l.raw} — no Indonesian print of this card yet`); continue; }
+      const e = DATA.en[eid];
+      // Pokémon with one name can be different cards, so say when the print itself wasn't found.
+      if (l.set && e.set?.toLowerCase() !== l.set.toLowerCase() && DATA.id[grp.id[0]].category === "Pokemon")
+        issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${e.name} ${e.set} ${e.number}.`);
       const c = DATA.id[pickId(grp.id)];
       const text = `${c.name} ${c.set} ${c.number}`;
       const cur = result.get(text) ?? { count: 0, text, cat: c.category };
@@ -235,7 +266,7 @@ function convert() {
   for (const cat of CAT_ORDER) {
     const items = [...result.values()].filter((r) => r.cat === cat);
     if (!items.length) continue;
-    out.push(`${CAT_LABEL[dir][cat]}: ${items.reduce((s, r) => s + r.count, 0)}`);
+    out.push(`${CAT_LABEL[dir][cat]}: ${items.length}`); // PTCG Live counts lines here, not cards
     items.forEach((r) => out.push(`${r.count} ${r.text}`));
     out.push("");
   }
@@ -293,11 +324,11 @@ document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click
   document.querySelectorAll(".panel").forEach((p) => (p.hidden = p.id !== b.dataset.tab));
 }));
 document.querySelectorAll("#dir button").forEach((b) => b.addEventListener("click", () => {
-  document.querySelectorAll("#dir button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  setDir(b.dataset.dir);
   convert();
 }));
 $("#sample").addEventListener("click", () => { $("#in").value = SAMPLES[document.querySelector("#dir [aria-pressed=true]").dataset.dir]; convert(); });
-$("#in").addEventListener("input", convert);
+$("#in").addEventListener("input", () => convert(true));
 $("#q").addEventListener("input", renderBrowse);
 $("#copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#out").value); $("#copy").textContent = "Copied"; setTimeout(() => ($("#copy").textContent = "Copy"), 1200); } catch {} });
 
