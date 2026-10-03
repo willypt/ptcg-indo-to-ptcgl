@@ -56,7 +56,7 @@ The data is committed, so the converter works right away.
 
 - **PTCG Live:** `4 Mega Gardevoir ex MEG 60`. Accepts `Basic {P} Energy`.
 - **Pokepedia.id:** `3 Snorunt MA3 035/193`, `Perintah Bos [Ghetsis]`, `Total: 60`.
-- **PTCG Live style, Indonesian sets:** `3 Snorunt MA3 35`, `Energi Dasar {P} SV2a 210`, `Total Kartu: 60`.
+- **PTCG Live style, Indonesian sets:** `3 Snorunt MA3 35`, `Energi:` header, `Energi Dasar {P} SV2a 210`, `Total Kartu: 60`.
 
 Paste any of them; the direction is detected. Indonesian output can be either of the last two.
 
