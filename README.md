@@ -61,4 +61,4 @@ When a new Indonesian set releases, re-run all three steps. Any new trainer name
 - TCGdex hasn't tagged 30th Celebration with regulation marks yet, so that set is fetched whole (`UNMARKED_SETS` in `scripts/fetch-en.ts`).
 - The Indonesian site is not an official API. If its HTML changes, the scraper's parser (`scripts/scrape-id.ts`) needs updating.
 
-Inspired by [Pokepedia.id](https://pokepedia.id). Unofficial fan project. Not affiliated with The Pokémon Company, Nintendo, Creatures or GAME FREAK.
+Inspired by [Pokepedia.id](https://pokepedia.id). Unofficial fan tool, by WillyPT @ [Brewek Santai](https://www.instagram.com/breweksantai). Not affiliated with The Pokémon Company, Nintendo, Creatures or GAME FREAK.

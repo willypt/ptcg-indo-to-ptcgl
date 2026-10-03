@@ -444,7 +444,7 @@ fetch("map.json").then((r) => r.json()).then((d) => {
   groups = buildGroups();
   renderBrowse();
   renderCoverage();
-  $("#foot").innerHTML = `Data generated ${esc(new Date(d.generatedAt).toLocaleString())}. Indonesian data: <a href="https://asia.pokemon-card.com/id/card-search/" target="_blank" rel="noopener">Pokémon Asia</a>. English data: <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a>. Inspired by <a href="https://pokepedia.id" target="_blank" rel="noopener">Pokepedia.id</a>. Unofficial fan tool.`;
+  $("#foot").innerHTML = `Data generated ${esc(new Date(d.generatedAt).toLocaleString())}. Indonesian data: <a href="https://asia.pokemon-card.com/id/card-search/" target="_blank" rel="noopener">Pokémon Asia</a>. English data: <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a>. Inspired by <a href="https://pokepedia.id" target="_blank" rel="noopener">Pokepedia.id</a>. Unofficial fan tool, by WillyPT @ <a href="https://www.instagram.com/breweksantai" target="_blank" rel="noopener">Brewek Santai</a>.`;
 }).catch((e) => { $("#foot").textContent = `Couldn't load map.json: ${e}`; });
 </script>
 </body>
