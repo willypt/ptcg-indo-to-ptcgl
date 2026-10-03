@@ -84,7 +84,7 @@ Run this whenever a new Indonesian set or a new English set releases. An Indones
 
 ## Deck list formats
 
-- Pokepedia.id's Indonesian format is read as-is, and is the default output for PTCG Live → Indonesian (switchable to the official site's naming): `3 Snorunt MA3 035/193`, `Perintah Bos [Ghetsis]`, `Energi Dasar [Psikis]`, card-count headers and `Total: 60`.
+- PTCG Live → Indonesian writes one of two layouts. **Indonesian** is PTCG Live's own layout with Indonesian sets and official names (`3 Snorunt MA3 35`, `Perintah Bos (Ghetsis) SV1a 69`, line-count headers, `Total Cards: 60`). **Pokepedia.id** is the default and is also read as-is: `3 Snorunt MA3 035/193`, `Perintah Bos [Ghetsis]`, `Energi Dasar [Psikis]`, card-count headers and `Total: 60`.
 - English side: PTCG Live export format, `4 Mega Gardevoir ex MEG 60`. `Basic {P} Energy` and `Psychic Energy` are both accepted.
 - Indonesian side: the same shape with Indonesian set codes, `4 Mega Gardevoir ex MA1 060`. Set and number are optional; a name alone picks any matching print.
 

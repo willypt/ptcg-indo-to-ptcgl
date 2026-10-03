@@ -108,7 +108,7 @@
       </div>
       <div class="seg" id="fmt" hidden title="Output format for the Indonesian list">
         <button aria-pressed="true" data-fmt="pokepedia">Pokepedia.id</button>
-        <button aria-pressed="false" data-fmt="official">Indonesian</button>
+        <button aria-pressed="false" data-fmt="official" title="PTCG Live layout with Indonesian sets">Indonesian</button>
       </div>
       <button class="btn" id="sample">Load sample</button>
     </div>
@@ -252,19 +252,24 @@ function findEn(l) {
 
 const CAT_ORDER = ["Pokemon", "Trainer", "Energy"];
 // Indonesian output formats.
-//  pokepedia: "Perintah Bos [Ghetsis] SVM 172/175", "Energi Dasar [Psikis]", English headers, "Total: 60"
-//  official:  names exactly as on asia.pokemon-card.com ("Perintah Bos (Ghetsis)", "Energi Dasar {Psychic}"),
-//             Indonesian headers, "Total Kartu: 60"
+//  pokepedia: Pokepedia.id's layout: "Perintah Bos [Ghetsis] SVM 172/175", "Energi Dasar [Psikis]",
+//             headers count cards, "Total: 60"
+//  official:  PTCG Live's layout with Indonesian sets and official names: "Perintah Bos (Ghetsis) SVM 172",
+//             headers count lines, "Total Cards: 60"
 const FORMATS = {
   pokepedia: {
     name: (n) => n.replace(/[({<]\s*Psychic\s*[)}>]/g, "[Psikis]").replace(/\s*[({<]\s*([^)}>]+?)\s*[)}>]/g, " [$1]"),
+    number: (c) => c.printed ?? c.number,
     labels: { Pokemon: "Pokemon", Trainer: "Trainer", Energy: "Energy" },
+    header: (items) => items.reduce((s, r) => s + r.count, 0),
     total: (n) => `Total: ${n}`,
   },
   official: {
     name: (n) => n,
-    labels: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energi" },
-    total: (n) => `Total Kartu: ${n}`,
+    number: (c) => num(c.number).toUpperCase(),
+    labels: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" },
+    header: (items) => items.length,
+    total: (n) => `Total Cards: ${n}`,
   },
 };
 let FORMAT = "pokepedia";
@@ -329,7 +334,7 @@ function convert(auto = false) {
         issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${e.name} ${e.set} ${e.number}.`);
       // Same-art Indonesian print when one exists, else the standard one.
       const c = DATA.id[e.idArt ?? pickId(grp.id)];
-      const text = `${FORMATS[FORMAT].name(c.name)} ${c.set} ${c.printed ?? c.number}`;
+      const text = `${FORMATS[FORMAT].name(c.name)} ${c.set} ${FORMATS[FORMAT].number(c)}`;
       // The input print's own image only when that exact print was found; otherwise it's a stand-in.
       const exact = l.set && e.set?.toLowerCase() === l.set.toLowerCase() && !e.imageBorrowed;
       pairs.push({ count: l.count, label: l.name, from: enImg(e), fromApprox: !exact, to: idImg(c), toLabel: text, sameArt: exact && e.idArt != null });
@@ -342,7 +347,7 @@ function convert(auto = false) {
   for (const cat of CAT_ORDER) {
     const items = [...result.values()].filter((r) => r.cat === cat);
     if (!items.length) continue;
-    const n = dir === "id2en" ? items.length : items.reduce((s, r) => s + r.count, 0);
+    const n = dir === "id2en" ? items.length : FORMATS[FORMAT].header(items);
     out.push(`${dir === "id2en" ? CAT_LABEL.id2en[cat] : FORMATS[FORMAT].labels[cat]}: ${n}`);
     items.forEach((r) => out.push(`${r.count} ${r.text}`));
     out.push("");
