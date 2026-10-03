@@ -7,13 +7,15 @@
 
 Converts Pokémon TCG deck lists between **Indonesian** prints (regulation H, I, J) and **English / PTCG Live**, both ways.
 
+**[Open the converter](https://willypt.github.io/ptcg-indo-to-ptcgl/)** · **[Watch the demo video](https://willypt.github.io/ptcg-indo-to-ptcgl/media/demo.mp4)**
+
 ![Converter page](docs/media/hero.jpg)
 
 ## Demo
 
-From a Pokepedia.id deck to an imported, valid PTCG Live deck (1:23):
+From a Pokepedia.id deck to an imported, valid PTCG Live deck. Click to play:
 
-[![Watch the demo](docs/media/demo-poster.jpg)](https://willypt.github.io/ptcg-indo-to-ptcgl/media/demo.mp4)
+[![Watch the demo video](docs/media/demo-poster.jpg)](https://willypt.github.io/ptcg-indo-to-ptcgl/media/demo.mp4)
 
 ## Features
 
