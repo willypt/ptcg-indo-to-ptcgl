@@ -106,6 +106,19 @@ async function main() {
       image: c.image,
     };
   });
+  // TCGdex has no pictures of the current basic Energy prints (SVE, MEE). For display only,
+  // borrow a Scarlet & Violet-era basic Energy print that has one; the deck text keeps SVE/MEE.
+  const energyList = (await (await fetch(`${REST}/cards?category=Energy`)).json()) as { id: string; name: string; image?: string }[];
+  const energyArt: Record<string, string> = {};
+  for (const type of ["Grass", "Fire", "Water", "Lightning", "Psychic", "Fighting", "Darkness", "Metal"]) {
+    const pick = energyList.find(
+      (c) => c.image && /^(sv|me)/.test(c.id) && new RegExp(`^(Basic )?${type} Energy$`).test(c.name),
+    );
+    if (pick) energyArt[`${type} Energy`] = pick.image!;
+  }
+  await writeFile("data/energy-art.json", JSON.stringify(energyArt, null, 1));
+  console.log(`Basic Energy pictures borrowed for ${Object.keys(energyArt).length} types`);
+
   cards.sort((a, b) => a.releaseDate.localeCompare(b.releaseDate) || a.id.localeCompare(b.id, undefined, { numeric: true }));
   await writeFile("data/en-cards.json", JSON.stringify(cards, null, 1));
   console.log(`Wrote ${cards.length} cards from ${sets.size} sets to data/en-cards.json`);

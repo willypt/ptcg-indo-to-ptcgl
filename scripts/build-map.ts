@@ -219,6 +219,9 @@ rows.forEach((r, index) => {
 // Compact payload for the web app: one entry per Indonesian print, English prints by id.
 const enUsed = new Map<string, EnCard>();
 for (const r of rows) for (const e of r.en) enUsed.set(e.id, e);
+const energyArt: Record<string, string> = existsSync("data/energy-art.json")
+  ? JSON.parse(await readFile("data/energy-art.json", "utf8"))
+  : {};
 const map = {
   generatedAt: new Date().toISOString(),
   en: Object.fromEntries(
@@ -230,7 +233,9 @@ const map = {
         setName: e.setName,
         number: e.number.replace(/^0+(?=\d)/, ""),
         mark: e.regulationMark,
-        image: e.image,
+        // Basic Energy without a picture borrows one from another print (display only).
+        image: e.image ?? (e.energyType === "Normal" ? energyArt[e.name] ?? null : null),
+        imageBorrowed: !e.image && e.energyType === "Normal" && !!energyArt[e.name],
         idArt: idArtOf.get(e.id)?.index ?? null,
       },
     ]),

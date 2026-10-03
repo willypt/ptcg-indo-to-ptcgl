@@ -50,7 +50,7 @@ When a new Indonesian set releases, re-run all three steps. Any new trainer name
 
 ## Deck list formats
 
-- Pokepedia's Indonesian format is read and written as-is: `3 Snorunt MA3 035/193`, `Perintah Bos [Ghetsis]`, `Energi Dasar [Psikis]`, card-count headers and `Total: 60`.
+- Pokepedia.id's Indonesian format is read as-is, and is the default output for PTCG Live → Indonesian (switchable to the official site's naming): `3 Snorunt MA3 035/193`, `Perintah Bos [Ghetsis]`, `Energi Dasar [Psikis]`, card-count headers and `Total: 60`.
 - English side: PTCG Live export format, `4 Mega Gardevoir ex MEG 60`. `Basic {P} Energy` and `Psychic Energy` are both accepted.
 - Indonesian side: the same shape with Indonesian set codes, `4 Mega Gardevoir ex MA1 060`. Set and number are optional; a name alone picks any matching print.
 
@@ -61,4 +61,4 @@ When a new Indonesian set releases, re-run all three steps. Any new trainer name
 - TCGdex hasn't tagged 30th Celebration with regulation marks yet, so that set is fetched whole (`UNMARKED_SETS` in `scripts/fetch-en.ts`).
 - The Indonesian site is not an official API. If its HTML changes, the scraper's parser (`scripts/scrape-id.ts`) needs updating.
 
-Unofficial fan project. Not affiliated with The Pokémon Company, Nintendo, Creatures or GAME FREAK.
+Inspired by [Pokepedia.id](https://pokepedia.id). Unofficial fan project. Not affiliated with The Pokémon Company, Nintendo, Creatures or GAME FREAK.
