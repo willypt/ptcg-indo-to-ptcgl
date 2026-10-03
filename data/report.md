@@ -1,6 +1,6 @@
 # Match report
 
-Generated 2026-10-03T03:09:26.944Z. Indonesian Standard prints: 4152.
+Generated 2026-10-03T03:13:16.538Z. Indonesian Standard prints: 4152.
 
 | Category | Matched | Ambiguous | Unmatched |
 |---|---|---|---|
@@ -15,7 +15,7 @@ Same-art English print found for 3717 of 4132 matched Indonesian prints.
 
 | Set | No. | Name | Mark | Status | Reason |
 |---|---|---|---|---|---|
-| M-P | 134/M-P | Gris | J | unmatched | "Gris" missing from trainer-names.json |
+| M-P | 134/M-P | Gris | J | unmatched | "Grisham" is not an English Standard card |
 | M-P | 166/M-P | Sprigatito | J | unmatched | no English "Sprigatito" with HP 70, attacks 1:10+ |
 | M-P | 167/M-P | Floragato | J | unmatched | no English "Floragato" with HP 90, attacks 2:60 |
 | M-P | 168/M-P | Meowscarada ex | J | unmatched | no English Pokémon named "Meowscarada ex" |
