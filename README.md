@@ -7,6 +7,52 @@
 
 Converts Pokémon TCG deck lists between **Indonesian** prints (regulation H, I, J) and **English / PTCG Live**, both ways.
 
+![Converter page](docs/media/hero.jpg)
+
+## Demo
+
+From a Pokepedia.id deck to an imported, valid PTCG Live deck (1:23):
+
+[![Watch the demo](docs/media/demo-poster.jpg)](https://willypt.github.io/ptcg-indo-to-ptcgl/media/demo.mp4)
+
+## Features
+
+**Pokepedia.id / Indonesian → PTCG Live.** Paste a list copied from Pokepedia.id (or written with Indonesian set codes) and get a list PTCG Live imports.
+
+![Pokepedia.id list converted to PTCG Live](docs/media/convert-pokepedia.jpg)
+
+**PTCG Live → Indonesian, in two layouts.** Pokepedia.id's (`035/193`, `[Ghetsis]`, `Total: 60`) or PTCG Live's own with Indonesian sets (`MA3 35`, `Energi Dasar {P}`, `Total Kartu: 60`).
+
+| Pokepedia.id | PTCG Live style |
+|---|---|
+| ![Pokepedia.id output](docs/media/convert-ptcgl-pokepedia.jpg) | ![PTCG Live style output](docs/media/convert-ptcgl-official.jpg) |
+
+**Same card, same art.** Each card converts to the print with the same artwork when one exists, never to a promo when a regular print exists.
+
+**Deck images.** Both decks side by side in the same order. Orange outline = different art; faded = stand-in picture.
+
+![Deck images](docs/media/deck-images.jpg)
+
+**Card viewer.** Click a card to compare both prints up close. Arrow keys step through the deck.
+
+![Card viewer](docs/media/card-viewer.jpg)
+
+**Separate modes.** Each direction keeps its own boxes, and switching clears them. Paste a list into the wrong mode and the page offers to switch.
+
+![Wrong-direction hint](docs/media/wrong-direction.jpg)
+
+**Browse and coverage.** Search any card in either language, and see which Indonesian prints don't have an English match yet, and why.
+
+| Browse | Coverage |
+|---|---|
+| ![Browse cards](docs/media/browse.jpg) | ![Coverage](docs/media/coverage.jpg) |
+
+Works on phones too.
+
+<img src="docs/media/mobile.jpg" alt="Mobile" width="300">
+
+## What's in the repo
+
 - `docs/`: the converter page, served on GitHub Pages
 - `data/map.json`: the mapping, for use in other tools
 - `data/report.md`: match rate and every unmatched card, with the reason

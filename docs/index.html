@@ -188,8 +188,8 @@
   <section class="panel" id="convert">
     <div class="row">
       <div class="seg" id="dir">
-        <button aria-pressed="true" data-dir="id2en">🇮🇩 Indonesian → 🇬🇧 PTCG Live</button>
-        <button aria-pressed="false" data-dir="en2id">🇬🇧 PTCG Live → 🇮🇩 Indonesian</button>
+        <button aria-pressed="true" data-dir="id2en">🇮🇩 Indonesian → 🇺🇸 PTCG Live</button>
+        <button aria-pressed="false" data-dir="en2id">🇺🇸 PTCG Live → 🇮🇩 Indonesian</button>
       </div>
       <button class="btn" id="sample">Load sample</button>
     </div>
@@ -546,7 +546,7 @@ function openBox(i) {
   if (!p) return;
   boxIndex = i;
   const dir = document.querySelector("#dir [aria-pressed=true]").dataset.dir;
-  const [fromSide, toSide] = dir === "id2en" ? ["🇮🇩 Indonesian", "🇬🇧 PTCG Live"] : ["🇬🇧 PTCG Live", "🇮🇩 Indonesian"];
+  const [fromSide, toSide] = dir === "id2en" ? ["🇮🇩 Indonesian", "🇺🇸 PTCG Live"] : ["🇺🇸 PTCG Live", "🇮🇩 Indonesian"];
   $("#boxTitle").textContent = `×${p.count} ${p.label}`;
   boxCard($("#boxFrom"), p.from, p.label, p.fromApprox ? "approx" : "");
   boxCard($("#boxTo"), p.to, p.toLabel ?? "Not converted", p.to && p.from && !p.fromApprox && !p.borrowed && !p.sameArt ? "diffart" : "");
@@ -593,7 +593,7 @@ function renderHero() {
   $("#fanId").src = c.image;
   $("#fanEn").src = `${e.image}/high.webp`;
   $("#fanIdLabel").textContent = `🇮🇩 ${c.set} ${c.number}`;
-  $("#fanEnLabel").textContent = `🇬🇧 ${e.set} ${e.number}`;
+  $("#fanEnLabel").textContent = `🇺🇸 ${e.set} ${e.number}`;
   const fan = $("#fan");
   fan.hidden = false;
   fan.classList.add("dealt");
