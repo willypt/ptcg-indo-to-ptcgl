@@ -1,5 +1,10 @@
 # Kartu ID ⇄ EN
 
+[![Live site](https://img.shields.io/badge/live-willypt.github.io%2Fptcg--indo--to--ptcgl-e8590c)](https://willypt.github.io/ptcg-indo-to-ptcgl/)
+[![Source](https://img.shields.io/badge/source-GitHub-181717?logo=github)](https://github.com/willypt/ptcg-indo-to-ptcgl)
+[![Indonesian data](https://img.shields.io/badge/Indonesian%20data-Pok%C3%A9mon%20Asia-ffcb05)](https://asia.pokemon-card.com/id/card-search/)
+[![English data](https://img.shields.io/badge/English%20data-TCGdex-3b82f6)](https://tcgdex.dev)
+
 Maps every Standard-legal **Indonesian** Pokémon TCG print (regulation marks H, I, J) to its **English** counterpart, the card you'd use in Pokémon TCG Live, and back.
 
 - `docs/`: a static page (served on GitHub Pages at https://willypt.github.io/ptcg-indo-to-ptcgl/) that converts deck lists both ways, lets you browse the mapping, and shows coverage. No server needed.
@@ -14,7 +19,7 @@ As of 2026-10-03: **4,132 of 4,152** Standard Indonesian prints (99.5%) are matc
 - The newest Mega Evolution promos (`M-P 166–182`)
 - Three promo Trainers: Simbol Kemenangan, Gris, Deura
 
-Spot checks of the automatically tie-broken matches all came out correct.
+Spot checks of the automatically tie-broken matches all came out correct. 3,717 of the matched prints also have an English print with the same artwork.
 
 ## Why it isn't a simple lookup
 
@@ -27,26 +32,55 @@ Indonesian sets follow the Japanese release structure, not the English one. Set 
 
 Name differences between the two languages live in `data/pokemon-names.json`: trainer owners (`<Tim Roket>` = Team Rocket's, `<Mistika>` = Iono's) and forms ("Ogerpon Topeng Teal" = Teal Mask Ogerpon). When two different English cards share the same stats (the 30th Celebration Pikachus, for example), the matcher compares regulation mark, attack names left in English, and the numbers in the effect text. The few it still can't separate are pinned by hand in `data/overrides.json`.
 
-Cards with the same name and effect are interchangeable in play, so a match can point to several English prints. To keep the exact print, the converter compares artwork: every card image gets a perceptual hash (`scripts/hash-art.ts`, of the art window and of the whole card), and the English print whose art matches the Indonesian one is used. On known pairs, same-art prints scored 0–8 out of 64 and different art 24+, so the cut-off is 12. When no English print shares the art (Asia-only artwork, for example), the converter falls back to a *canonical* print: a regular expansion over special sets, main-set numbering over secret rares, then the most recent set. The browse view labels each row "same art" or "different art".
+Cards with the same name and effect are interchangeable in play, so a match can point to several English prints. To keep the exact print, the converter compares artwork: every card image gets a perceptual hash (`scripts/hash-art.ts`, of the art window and of the whole card), and the English print whose art matches the Indonesian one is used. On known pairs, same-art prints scored 0–8 out of 64 and different art 22+, so the cut-off is 12. When no English print shares the art (Asia-only artwork, for example), the converter falls back to a *canonical* print: a regular expansion over special sets, main-set numbering over secret rares, then the most recent set. The browse view labels each row "same art" or "different art".
 
 ## Data sources
 
 - Indonesian: [asia.pokemon-card.com/id/card-search](https://asia.pokemon-card.com/id/card-search/), the official Pokémon Asia database, filtered to Standard. Scraped politely (4 concurrent requests, 200 ms delay) and cached locally.
 - English: [TCGdex](https://tcgdex.dev) GraphQL API. Its Indonesian data stops at SV9s, which is why it isn't used for that side.
 
-## Running it
+## Running it locally
 
-Requires [Bun](https://bun.sh).
+You need [Bun](https://bun.sh) 1.1 or later and Git.
 
 ```sh
-bun run scrape:id   # Indonesian Standard cards → data/id-cards.json (~20 min first run, cached after)
-bun run fetch:en    # English H/I/J cards → data/en-cards.json
-bun run hash:art    # perceptual hashes of every card image → data/art-hashes.json (~40 min first run, cached after)
-bun run build       # match → data/map.json, docs/map.json, data/report.md
-bun run dev         # serve docs/ locally
+git clone https://github.com/willypt/ptcg-indo-to-ptcgl.git
+cd ptcg-indo-to-ptcgl
+bun install         # only dependency is sharp, used for image hashing
+bun run dev         # serves docs/ at http://localhost:3000
 ```
 
-When a new Indonesian set releases, re-run all three steps. Any new trainer names show up as `unmatched` in `data/report.md`. Add them to `data/trainer-names.json` and run `build` again.
+That's enough to use the converter: the generated data (`docs/map.json`) is committed, so nothing has to be rebuilt first.
+
+To rebuild the data from scratch:
+
+```sh
+bun run scrape:id   # Indonesian Standard cards → data/id-cards.json (~20 min first run, cached in data/.cache after)
+bun run fetch:en    # English H/I/J cards from TCGdex → data/en-cards.json (~2 min)
+bun run hash:art    # picture fingerprints of every card → data/art-hashes.json (~40 min first run, only new cards after)
+bun run build       # matching → data/map.json, docs/map.json, data/report.md (seconds)
+```
+
+`bun run all` runs the four steps in order.
+
+## When a new set comes out
+
+Run this whenever a new Indonesian set or a new English set releases. An Indonesian set usually comes out first; its cards stay `unmatched` until the English set exists, and match on the next update after that.
+
+1. **Refresh the data:** `bun run all`. Only new cards are downloaded and fingerprinted, so a normal update takes a few minutes.
+2. **Read `data/report.md`.** The top table shows the match rate; the list below it names every card that didn't match and why. Each reason has its own fix:
+
+   | Reason in the report | What to do |
+   |---|---|
+   | `"Bola Xyz" missing from trainer-names.json` | A new Trainer or Energy name. Add `"Bola Xyz": "English Name"` to `data/trainer-names.json`. If the name isn't an obvious translation (character names often differ), compare the effect text on both sites before adding it. |
+   | `no English Pokémon named "Pinsir <Siapa>"` | A new trainer owner or form name. Add it to `owners` or `pokemon` in `data/pokemon-names.json`. |
+   | `"English Name" is not an English Standard card` | The English set isn't out yet, or isn't in TCGdex yet. Nothing to do; it matches on a later update. |
+   | `N different English "X" cards fit equally` | Two English cards with identical stats. Read both effect texts and pin the right one in `data/overrides.json` (`"SET NUMBER": "tcgdex-card-id"`). |
+   | A whole new English set is missing | TCGdex sometimes leaves a new set without regulation marks (as it did with 30th Celebration). Add its TCGdex set id to `UNMARKED_SETS` in both `scripts/fetch-en.ts` and `scripts/build-map.ts`, then re-run from `fetch:en`. |
+
+3. **Rebuild after editing:** `bun run build` (no re-download needed), and check the report again.
+4. **Try it:** `bun run dev`, paste a deck that uses the new set, and look at the deck images.
+5. **Publish:** commit and push to `main`. GitHub Pages serves `docs/`, so the live site updates within a minute or two.
 
 ## Deck list formats
 
