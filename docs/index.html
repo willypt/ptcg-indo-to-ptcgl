@@ -281,7 +281,7 @@ function parseLines(text) {
   const out = [];
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.replace(/[\u200b-\u200d\u2060\ufeff]/g, "").trim();
-    if (!line || /^(pok[eé]mon|trainer|energy|energi|total)( cards)?\s*:\s*\d*\s*$/i.test(line)) continue;
+    if (!line || /^(pok[eé]mon|trainer|energy|energi|total)( cards| kartu)?\s*:\s*\d*\s*$/i.test(line)) continue;
     // Collector numbers can be letters too (Indonesian basic Energy: "SVTS PSY"),
     // may carry the set size (Pokepedia: "035/193", "255/SV-P"),
     // and set codes can start with a digit ("30C").
@@ -339,7 +339,7 @@ const CAT_ORDER = ["Pokemon", "Trainer", "Energy"];
 //  pokepedia: Pokepedia.id's layout: "Perintah Bos [Ghetsis] SVM 172/175", "Energi Dasar [Psikis]",
 //             headers count cards, "Total: 60"
 //  official:  PTCG Live's layout with Indonesian sets and official names: "Perintah Bos (Ghetsis) SVM 172",
-//             headers count lines, "Total Cards: 60"
+//             headers count lines, "Total Kartu: 60"
 const FORMATS = {
   pokepedia: {
     name: (n) => n.replace(/[({<]\s*Psychic\s*[)}>]/g, "[Psikis]").replace(/\s*[({<]\s*([^)}>]+?)\s*[)}>]/g, " [$1]"),
@@ -356,7 +356,7 @@ const FORMATS = {
     number: (c) => num(c.number).toUpperCase(),
     labels: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" },
     header: (items) => items.length,
-    total: (n) => `Total Cards: ${n}`,
+    total: (n) => `Total Kartu: ${n}`,
   },
 };
 // PTCG Live writes basic Energy as "Basic {P} Energy"; TCGdex calls it "Psychic Energy".
