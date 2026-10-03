@@ -187,6 +187,7 @@ const map = {
     number: r.id.number.split("/")[0],
     // Printed set size ("019/130" → 130); numbers above it are secret rares.
     of: Number(r.id.number.split("/")[1]) || null,
+    printed: r.id.number,
     mark: r.id.regulationMark,
     category: r.id.category,
     image: r.id.image,

@@ -80,7 +80,7 @@
   <section class="panel" id="convert">
     <div class="row">
       <div class="seg" id="dir">
-        <button aria-pressed="true" data-dir="id2en">Indonesian → PTCG Live</button>
+        <button aria-pressed="true" data-dir="id2en">Indonesian / Pokepedia → PTCG Live</button>
         <button aria-pressed="false" data-dir="en2id">PTCG Live → Indonesian</button>
       </div>
       <button class="btn" id="sample">Load sample</button>
@@ -168,10 +168,11 @@ function parseLines(text) {
   const out = [];
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line || /^(pok[eé]mon|trainer|energy|energi|total cards)\b.*:\s*\d*\s*$/i.test(line)) continue;
-    // Collector numbers can be letters too (Indonesian basic Energy: "SVTS PSY").
-    // Set codes can start with a digit ("30C").
-    const m = line.match(/^(\d+)\s*x?\s+(.+?)(?:\s+([A-Za-z0-9][A-Za-z0-9.\-]*)\s+([A-Za-z0-9\-]+))?\s*$/);
+    if (!line || /^(pok[eé]mon|trainer|energy|energi|total)( cards)?\s*:\s*\d*\s*$/i.test(line)) continue;
+    // Collector numbers can be letters too (Indonesian basic Energy: "SVTS PSY"),
+    // may carry the set size (Pokepedia: "035/193", "255/SV-P"),
+    // and set codes can start with a digit ("30C").
+    const m = line.match(/^(\d+)\s*x?\s+(.+?)(?:\s+([A-Za-z0-9][A-Za-z0-9.\-]*)\s+([A-Za-z0-9\-]+)(?:\/[A-Za-z0-9\-]+)?)?\s*$/);
     if (!m) { out.push({ raw, error: "couldn't read this line" }); continue; }
     out.push({ raw, count: Number(m[1]), name: m[2], set: m[3], number: m[4] });
   }
@@ -181,12 +182,20 @@ function parseLines(text) {
 // Set + number wins only when the name agrees; otherwise fall back to the name,
 // since a typo in the number shouldn't silently swap the card.
 // (A line without set/number may still have been split as if it had one, so try the full text too.)
+// Indonesian names are written several ways: the official site has "Perintah Bos (Ghetsis)",
+// "Energi Dasar {Psychic}", "Pinsir <Ethan>"; Pokepedia writes "[Ghetsis]" and "[Psikis]".
+const idKey = (name) =>
+  norm(name).replace(/[\[{<(]\s*/g, "(").replace(/\s*[\]}>)]/g, ")").replace(/\s*\(/g, " (").replace(/psikis/g, "psychic");
+// Name without any bracketed part, only used to sanity-check a set + number hit.
+const looseKey = (name) => idKey(name).replace(/\s*\([^)]*\)/g, "").trim();
+
 function findId(l) {
   const idx = DATA.id.map((c, i) => i);
-  const names = [norm(l.name), norm([l.name, l.set, l.number].filter(Boolean).join(" "))];
-  const named = idx.filter((i) => names.includes(norm(DATA.id[i].name)));
+  const names = [idKey(l.name), idKey([l.name, l.set, l.number].filter(Boolean).join(" "))];
+  const named = idx.filter((i) => names.includes(idKey(DATA.id[i].name)));
   if (l.set) {
-    const hit = named.find((i) => DATA.id[i].set.toLowerCase() === l.set.toLowerCase() && num(DATA.id[i].number) === num(l.number));
+    const samePrint = (i) => DATA.id[i].set.toLowerCase() === l.set.toLowerCase() && num(DATA.id[i].number) === num(l.number);
+    const hit = named.find(samePrint) ?? idx.find((i) => samePrint(i) && looseKey(DATA.id[i].name) === looseKey(l.name));
     if (hit !== undefined) return hit;
   }
   return named.find((i) => DATA.id[i].status === "matched") ?? named[0];
@@ -203,7 +212,7 @@ function findEn(l) {
 }
 
 const CAT_ORDER = ["Pokemon", "Trainer", "Energy"];
-const CAT_LABEL = { id2en: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" }, en2id: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energi" } };
+const CAT_LABEL = { id2en: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" }, en2id: { Pokemon: "Pokemon", Trainer: "Trainer", Energy: "Energy" } };
 
 function setDir(dir) {
   document.querySelectorAll("#dir button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.dir === dir));
@@ -257,21 +266,23 @@ function convert(auto = false) {
       if (l.set && e.set?.toLowerCase() !== l.set.toLowerCase() && DATA.id[grp.id[0]].category === "Pokemon")
         issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${e.name} ${e.set} ${e.number}.`);
       const c = DATA.id[pickId(grp.id)];
-      const text = `${c.name} ${c.set} ${c.number}`;
+      const text = `${c.name} ${c.set} ${c.printed ?? c.number}`;
       const cur = result.get(text) ?? { count: 0, text, cat: c.category };
       cur.count += l.count; result.set(text, cur);
     }
   }
+  // PTCG Live headers count lines and end with "Total Cards"; Pokepedia's count cards and end with "Total".
   const out = [];
   for (const cat of CAT_ORDER) {
     const items = [...result.values()].filter((r) => r.cat === cat);
     if (!items.length) continue;
-    out.push(`${CAT_LABEL[dir][cat]}: ${items.length}`); // PTCG Live counts lines here, not cards
+    const n = dir === "id2en" ? items.length : items.reduce((s, r) => s + r.count, 0);
+    out.push(`${CAT_LABEL[dir][cat]}: ${n}`);
     items.forEach((r) => out.push(`${r.count} ${r.text}`));
     out.push("");
   }
   const total = [...result.values()].reduce((s, r) => s + r.count, 0);
-  if (total) out.push(`Total Cards: ${total}`);
+  if (total) out.push(dir === "id2en" ? `Total Cards: ${total}` : `Total: ${total}`);
   $("#out").value = out.join("\n");
   $("#summary").textContent = lines.length ? `${total} cards converted${issues.length ? `, ${issues.length} line(s) need attention` : ""}` : "";
   $("#issues").innerHTML = issues.map((s) => `<li>⚠︎ ${esc(s)}</li>`).join("");
@@ -315,7 +326,7 @@ function renderCoverage() {
 }
 
 const SAMPLES = {
-  id2en: "Pokémon: 13\n4 Ralts\n3 Kirlia\n2 Mega Gardevoir ex MA1 060\n2 Lunatone\n2 Solrock\n\nTrainer: 10\n4 Bola Ultra\n4 Perintah Bos\n2 Iron Defender\n\nEnergi: 7\n7 Energi Dasar Psychic",
+  id2en: "Pokemon: 13\n4 Ralts MA1 058/126\n3 Kirlia MA1 059/126\n2 Mega Gardevoir ex MA1 060/126\n2 Lunatone\n2 Solrock\n\nTrainer: 10\n4 Bola Ultra\n4 Perintah Bos [Ghetsis] SVM 172/175\n2 Iron Defender\n\nEnergy: 7\n7 Energi Dasar [Psikis] SVTS PSY\n\nTotal: 30",
   en2id: "Pokémon: 8\n3 Dreepy TWM 128\n2 Drakloak TWM 129\n2 Dragapult ex TWM 130\n1 Fezandipiti ex SFA 38\n\nTrainer: 10\n4 Rare Candy MEG 125\n2 Boss's Orders MEG 114\n4 Ultra Ball MEG 131\n\nEnergy: 5\n3 Basic {R} Energy SVE 2\n2 Basic {P} Energy SVE 5",
 };
 
