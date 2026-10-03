@@ -374,7 +374,7 @@ const CAT_ORDER = ["Pokemon", "Trainer", "Energy"];
 //  pokepedia: Pokepedia.id's layout: "Perintah Bos [Ghetsis] SVM 172/175", "Energi Dasar [Psikis]",
 //             headers count cards, "Total: 60"
 //  official:  PTCG Live's layout with Indonesian sets and official names: "Perintah Bos (Ghetsis) SVM 172",
-//             headers count lines, "Total Kartu: 60"
+//             "Total Kartu: 60"
 const FORMATS = {
   pokepedia: {
     name: (n) => n.replace(/[({<]\s*Psychic\s*[)}>]/g, "[Psikis]").replace(/\s*[({<]\s*([^)}>]+?)\s*[)}>]/g, " [$1]"),
@@ -390,7 +390,7 @@ const FORMATS = {
     },
     number: (c) => num(c.number).toUpperCase(),
     labels: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energi" },
-    header: (items) => items.length,
+    header: (items) => items.reduce((s, r) => s + r.count, 0),
     total: (n) => `Total Kartu: ${n}`,
   },
 };
@@ -489,12 +489,13 @@ function convert() {
       cur.count += l.count; result.set(text, cur);
     }
   }
-  // PTCG Live headers count lines and end with "Total Cards"; Pokepedia's count cards and end with "Total".
+  // Headers count cards. PTCG Live lists end with "Total Cards", Pokepedia.id's with "Total".
   const out = [];
   for (const cat of CAT_ORDER) {
     const items = [...result.values()].filter((r) => r.cat === cat);
     if (!items.length) continue;
-    const n = dir === "id2en" ? items.length : FORMATS[FORMAT].header(items);
+    // Section headers count cards, so they add up to the total.
+    const n = dir === "id2en" ? items.reduce((s, r) => s + r.count, 0) : FORMATS[FORMAT].header(items);
     out.push(`${dir === "id2en" ? CAT_LABEL.id2en[cat] : FORMATS[FORMAT].labels[cat]}: ${n}`);
     items.forEach((r) => out.push(`${r.count} ${r.text}`));
     out.push("");
