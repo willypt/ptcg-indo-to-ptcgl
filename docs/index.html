@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kartu ID ⇄ EN</title>
+<title>Konversi Deck List Pokémon TCG Live ⇄ Pokepedia.id</title>
 <meta name="description" content="Indonesian Pokémon TCG cards (regulation H, I, J) mapped to their English / PTCG Live counterparts and vice-versa.">
 <style>
   :root {
@@ -90,13 +90,13 @@
 <div class="wrap">
   <header>
     <div class="titlerow">
-      <h1>Kartu ID ⇄ EN</h1>
+      <h1>Konversi Deck List Pokémon TCG Live ⇄ Pokepedia.id / Indonesian Format</h1>
       <a class="srcbadge" href="https://github.com/willypt/ptcg-indo-to-ptcgl" target="_blank" rel="noopener">
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         View source
       </a>
     </div>
-    <p>Indonesian Pokémon TCG cards (regulation H · I · J) mapped to their English / PTCG Live counterparts and vice-versa</p>
+    <p>Indonesian Pokémon TCG cards (H · I · J) ⇄ English / PTCG Live</p>
   </header>
 
   <nav role="tablist">
@@ -117,7 +117,7 @@
       <div class="card">
         <label class="h" for="in">Input</label>
         <textarea id="in" spellcheck="false" placeholder="4 Mega Gardevoir ex MA1 060&#10;4 Bola Nest&#10;…"></textarea>
-        <p class="muted" id="hint">One card per line: <code>count name [set number]</code>. Set and number are optional; name alone uses any print. The direction is detected from what you paste.</p>
+        <p class="muted" id="hint">Paste a PTCG Live or Pokepedia.id list. Direction is auto-detected.</p>
       </div>
       <div class="card">
         <div class="outhead">
@@ -144,12 +144,12 @@
         <div><div class="muted decklabel">Original</div><div class="deckgrid" id="deckFrom"></div></div>
         <div><div class="muted decklabel">Converted</div><div class="deckgrid" id="deckTo"></div></div>
       </div>
-      <p class="muted">Cards sit in the same spot in both decks. Hover one to highlight its counterpart. An orange outline means the converted print has different artwork. Faded originals are stand-in pictures: that exact print (often an older reprint) isn't in the data, so its art can't be compared.</p>
+      <p class="muted">Hover a card to find its counterpart. <span style="color:var(--accent)">Orange</span> = different art. Faded = stand-in picture (exact print not in the data).</p>
     </div>
   </section>
 
   <section class="panel" id="browse" hidden>
-    <div class="row"><input type="search" id="q" placeholder="Search Indonesian or English name, set code…"></div>
+    <div class="row"><input type="search" id="q" placeholder="Search name or set code…"></div>
     <div class="card tablewrap">
       <table>
         <thead><tr><th></th><th>Indonesian</th><th></th><th>English (PTCG Live)</th><th>Status</th></tr></thead>
@@ -233,8 +233,18 @@ function parseLines(text) {
 // (A line without set/number may still have been split as if it had one, so try the full text too.)
 // Indonesian names are written several ways: the official site has "Perintah Bos (Ghetsis)",
 // "Energi Dasar {Psychic}", "Pinsir <Ethan>"; Pokepedia writes "[Ghetsis]" and "[Psikis]".
+// Indonesian basic Energy is written "Energi Dasar Api", "Energi Dasar {Api}", "Energi Dasar [Psikis]"
+// or, PTCG Live style, "Energi Dasar {R}"; all reduce to "energi dasar api".
+const ENERGI = { g: "daun", r: "api", w: "air", l: "listrik", p: "psychic", f: "petarung", d: "kegelapan", m: "logam" };
+const ENERGI_LETTER = Object.fromEntries(Object.entries(ENERGI).map(([k, v]) => [v, k.toUpperCase()]));
+const energiKey = (key) => {
+  const m = key.match(/^energi dasar \(?([a-z]+)\)?$/);
+  if (!m) return key;
+  const t = m[1] === "psikis" ? "psychic" : m[1];
+  return `energi dasar ${ENERGI[t] ?? t}`;
+};
 const idKey = (name) =>
-  norm(name).replace(/[\[{<(]\s*/g, "(").replace(/\s*[\]}>)]/g, ")").replace(/\s*\(/g, " (").replace(/psikis/g, "psychic");
+  energiKey(norm(name).replace(/[\[{<(]\s*/g, "(").replace(/\s*[\]}>)]/g, ")").replace(/\s*\(/g, " (").replace(/psikis/g, "psychic"));
 // Name without any bracketed part, only used to sanity-check a set + number hit.
 const looseKey = (name) => idKey(name).replace(/\s*\([^)]*\)/g, "").trim();
 
@@ -275,13 +285,23 @@ const FORMATS = {
     total: (n) => `Total: ${n}`,
   },
   official: {
-    name: (n) => n,
+    name: (n) => {
+      const k = idKey(n);
+      return k.startsWith("energi dasar ") ? `Energi Dasar {${ENERGI_LETTER[k.slice(13)] ?? "?"}}` : n;
+    },
     number: (c) => num(c.number).toUpperCase(),
     labels: { Pokemon: "Pokémon", Trainer: "Trainer", Energy: "Energy" },
     header: (items) => items.length,
     total: (n) => `Total Cards: ${n}`,
   },
 };
+// PTCG Live writes basic Energy as "Basic {P} Energy"; TCGdex calls it "Psychic Energy".
+const ENERGY_LETTER = { Grass: "G", Fire: "R", Water: "W", Lightning: "L", Psychic: "P", Fighting: "F", Darkness: "D", Metal: "M" };
+const ptcglName = (n) => {
+  const m = n.match(/^(Grass|Fire|Water|Lightning|Psychic|Fighting|Darkness|Metal) Energy$/);
+  return m ? `Basic {${ENERGY_LETTER[m[1]]}} Energy` : n;
+};
+
 let FORMAT = "pokepedia";
 try { FORMAT = localStorage.getItem("idFormat") === "official" ? "official" : "pokepedia"; } catch {}
 
@@ -323,27 +343,33 @@ function convert(auto = false) {
     if (l.error) { issues.push(`${l.raw} — ${l.error}`); continue; }
     if (dir === "id2en") {
       const i = findId(l);
-      if (i === undefined) { issues.push(`${l.raw} — not an Indonesian Standard card (check the spelling)`); pairs.push({ count: l.count, label: l.name }); continue; }
+      if (i === undefined) { issues.push(`${l.raw} — not found (check spelling)`); pairs.push({ count: l.count, label: l.name }); continue; }
       const c = DATA.id[i];
       if (l.set && c.set.toLowerCase() !== l.set.toLowerCase() && c.category === "Pokemon")
-        issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${c.name} ${c.set} ${c.number}.`);
+        issues.push(`${l.raw} — print not in data; matched by name to ${c.name} ${c.set} ${c.number}`);
       if (c.status !== "matched") { issues.push(`${l.raw} — ${c.status}: ${c.reason}`); pairs.push({ count: l.count, label: c.name, from: idImg(c) }); continue; }
       const e = DATA.en[c.canonical];
       pairs.push({ count: l.count, label: c.name, from: idImg(c), to: enImg(e), toLabel: `${e.name} ${e.set} ${e.number}`, sameArt: c.sameArt, borrowed: e.imageBorrowed });
-      const text = `${e.name} ${e.set} ${e.number}`;
+      const text = `${ptcglName(e.name)} ${e.set} ${e.number}`;
       const cur = result.get(text) ?? { count: 0, text, cat: c.category };
       cur.count += l.count; result.set(text, cur);
     } else {
       const eid = findEn(l);
       const grp = eid && groups.get("en:" + eid);
-      if (!eid) { issues.push(`${l.raw} — not an English Standard (H/I/J) card`); pairs.push({ count: l.count, label: l.name }); continue; }
-      if (!grp || !grp.id.length) { issues.push(`${l.raw} — no Indonesian print of this card yet`); pairs.push({ count: l.count, label: l.name, from: enImg(DATA.en[eid]) }); continue; }
+      if (!eid) { issues.push(`${l.raw} — not a Standard card`); pairs.push({ count: l.count, label: l.name }); continue; }
+      if (!grp || !grp.id.length) { issues.push(`${l.raw} — no Indonesian print yet`); pairs.push({ count: l.count, label: l.name, from: enImg(DATA.en[eid]) }); continue; }
       const e = DATA.en[eid];
       // Pokémon with one name can be different cards, so say when the print itself wasn't found.
       if (l.set && e.set?.toLowerCase() !== l.set.toLowerCase() && DATA.id[grp.id[0]].category === "Pokemon")
-        issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${e.name} ${e.set} ${e.number}.`);
+        issues.push(`${l.raw} — print not in data; matched by name to ${e.name} ${e.set} ${e.number}`);
       // Same-art Indonesian print when one exists, else the standard one.
-      const c = DATA.id[e.idArt ?? pickId(grp.id)];
+      let c = DATA.id[e.idArt ?? pickId(grp.id)];
+      // PTCG Live style needs a numbered basic Energy print ("SV2a 210"), not "SVTS PSY".
+      if (FORMAT === "official" && c.category === "Energy" && !/^\d+$/.test(c.number)) {
+        const k = idKey(c.name);
+        const numbered = DATA.id.findIndex((x) => x.category === "Energy" && /^\d+$/.test(x.number) && idKey(x.name) === k);
+        if (numbered >= 0) c = DATA.id[numbered];
+      }
       const text = `${FORMATS[FORMAT].name(c.name)} ${c.set} ${FORMATS[FORMAT].number(c)}`;
       // The input print's own image only when that exact print was found; otherwise it's a stand-in.
       const exact = l.set && e.set?.toLowerCase() === l.set.toLowerCase() && !e.imageBorrowed;
@@ -366,7 +392,7 @@ function convert(auto = false) {
   if (total) out.push(dir === "id2en" ? `Total Cards: ${total}` : FORMATS[FORMAT].total(total));
   $("#fmtwrap").hidden = dir !== "en2id";
   $("#out").value = out.join("\n");
-  $("#summary").textContent = lines.length ? `${total} cards converted${issues.length ? `, ${issues.length} line(s) need attention` : ""}` : "";
+  $("#summary").textContent = lines.length ? `${total} cards${issues.length ? ` · ${issues.length} to check` : ""}` : "";
   $("#issues").innerHTML = issues.map((s) => `<li>⚠︎ ${esc(s)}</li>`).join("");
   renderDecks(pairs);
 }
@@ -391,7 +417,7 @@ function renderDecks(pairs) {
   $("#deckTo").innerHTML = pairs.map((p, i) => tile(p.to, p.count, p.toLabel ?? p.label, i, toCls(p))).join("");
   const converted = pairs.filter((p) => p.from && p.to && !p.fromApprox && !p.borrowed); // art can only be compared between real pictures
   const same = converted.filter((p) => p.sameArt).length;
-  $("#artsummary").textContent = converted.length ? `${same} of ${converted.length} lines kept the same artwork` : "";
+  $("#artsummary").textContent = converted.length ? `Same art: ${same}/${converted.length}` : "";
 }
 
 // Hovering a card highlights the card in the same spot in the other deck.
@@ -420,7 +446,7 @@ function renderBrowse() {
       <td><span class="badge b-${c.status}">${c.status}</span>${c.status === "matched" ? `<div class="code" style="margin-top:4px">${c.sameArt ? "same art" : "different art"}</div>` : ""}</td>
     </tr>`;
   }).join("");
-  $("#more").textContent = rows.length > LIMIT ? `Showing ${LIMIT} of ${rows.length}. Refine the search to see more.` : `${rows.length} card(s)`;
+  $("#more").textContent = rows.length > LIMIT ? `${LIMIT} of ${rows.length} shown` : `${rows.length} card(s)`;
 }
 
 function renderCoverage() {
@@ -463,12 +489,12 @@ $("#in").addEventListener("input", () => convert(true));
 $("#q").addEventListener("input", renderBrowse);
 $("#copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#out").value); $("#copy").textContent = "Copied"; setTimeout(() => ($("#copy").textContent = "Copy"), 1200); } catch {} });
 
-fetch("map.json").then((r) => r.json()).then((d) => {
+fetch("map.json", { cache: "no-cache" }).then((r) => r.json()).then((d) => {
   DATA = d;
   groups = buildGroups();
   renderBrowse();
   renderCoverage();
-  $("#foot").innerHTML = `Data generated ${esc(new Date(d.generatedAt).toLocaleString())}. Indonesian data: <a href="https://asia.pokemon-card.com/id/card-search/" target="_blank" rel="noopener">Pokémon Asia</a>. English data: <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a>. Inspired by <a href="https://pokepedia.id" target="_blank" rel="noopener">Pokepedia.id</a>. Unofficial fan tool, by WillyPT @ <a href="https://www.instagram.com/breweksantai" target="_blank" rel="noopener">Brewek Santai</a>.`;
+  $("#foot").innerHTML = `Data: <a href="https://asia.pokemon-card.com/id/card-search/" target="_blank" rel="noopener">Pokémon Asia</a> · <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a> · updated ${esc(new Date(d.generatedAt).toLocaleDateString())}. Inspired by <a href="https://pokepedia.id" target="_blank" rel="noopener">Pokepedia.id</a>. Unofficial fan tool, by WillyPT @ <a href="https://www.instagram.com/breweksantai" target="_blank" rel="noopener">Brewek Santai</a>.`;
 }).catch((e) => { $("#foot").textContent = `Couldn't load map.json: ${e}`; });
 </script>
 </body>
