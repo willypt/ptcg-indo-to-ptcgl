@@ -25,6 +25,7 @@
     --warn: #facc15; --warn-soft: #332b10; --bad: #f87171; --bad-soft: #3a1a1a;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 64px; }
   header h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
@@ -45,6 +46,10 @@
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
   .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
   .seg button { border: 0; background: var(--surface); color: var(--muted); padding: 7px 12px; font: inherit; cursor: pointer; }
+  .outhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .outhead label.h { margin: 0; }
+  .fmtpick { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .seg.small button { padding: 4px 10px; font-size: 13px; }
   .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
   .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 7px 12px; border-radius: 8px; font: inherit; cursor: pointer; }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -103,12 +108,8 @@
   <section class="panel" id="convert">
     <div class="row">
       <div class="seg" id="dir">
-        <button aria-pressed="true" data-dir="id2en">Indonesian / Pokepedia.id → PTCG Live</button>
-        <button aria-pressed="false" data-dir="en2id">PTCG Live → Indonesian</button>
-      </div>
-      <div class="seg" id="fmt" hidden title="Output format for the Indonesian list">
-        <button aria-pressed="true" data-fmt="pokepedia">Pokepedia.id</button>
-        <button aria-pressed="false" data-fmt="official" title="PTCG Live layout with Indonesian sets">Indonesian</button>
+        <button aria-pressed="true" data-dir="id2en">🇮🇩 Indonesian → 🇬🇧 PTCG Live</button>
+        <button aria-pressed="false" data-dir="en2id">🇬🇧 PTCG Live → 🇮🇩 Indonesian</button>
       </div>
       <button class="btn" id="sample">Load sample</button>
     </div>
@@ -119,7 +120,16 @@
         <p class="muted" id="hint">One card per line: <code>count name [set number]</code>. Set and number are optional; name alone uses any print. The direction is detected from what you paste.</p>
       </div>
       <div class="card">
-        <label class="h" for="out">Output</label>
+        <div class="outhead">
+          <label class="h" for="out">Output</label>
+          <div class="fmtpick" id="fmtwrap" hidden>
+            <span class="muted">Format</span>
+            <div class="seg small" id="fmt">
+              <button aria-pressed="true" data-fmt="pokepedia" title="Pokepedia.id layout: 035/193 numbers, [brackets], Total: 60">Pokepedia.id</button>
+              <button aria-pressed="false" data-fmt="official" title="PTCG Live's layout with Indonesian sets and names">PTCG Live style</button>
+            </div>
+          </div>
+        </div>
         <textarea id="out" spellcheck="false" readonly></textarea>
         <div class="row"><button class="btn primary" id="copy">Copy</button><span class="muted" id="summary"></span></div>
         <ul class="issues" id="issues"></ul>
@@ -193,13 +203,13 @@ function buildGroups() {
   return of;
 }
 
-// Representative Indonesian print: plain name (not "Perintah Bos (Ghetsis)"),
+// Representative Indonesian print: not a promo, plain name (not "Perintah Bos (Ghetsis)"),
 // main-set numbering rather than a secret rare, then the newest print.
 const isMainId = (c) => /^\d+$/.test(c.number) && (!c.of || Number(c.number) <= c.of);
 function pickId(ids) {
   return [...ids].sort((a, b) => {
     const A = DATA.id[a], B = DATA.id[b];
-    return (/\(/.test(A.name) - /\(/.test(B.name)) || (isMainId(B) - isMainId(A)) || b - a;
+    return (/-P$/.test(A.set) - /-P$/.test(B.set)) || (/\(/.test(A.name) - /\(/.test(B.name)) || (isMainId(B) - isMainId(A)) || b - a;
   })[0];
 }
 
@@ -354,7 +364,7 @@ function convert(auto = false) {
   }
   const total = [...result.values()].reduce((s, r) => s + r.count, 0);
   if (total) out.push(dir === "id2en" ? `Total Cards: ${total}` : FORMATS[FORMAT].total(total));
-  $("#fmt").hidden = dir !== "en2id";
+  $("#fmtwrap").hidden = dir !== "en2id";
   $("#out").value = out.join("\n");
   $("#summary").textContent = lines.length ? `${total} cards converted${issues.length ? `, ${issues.length} line(s) need attention` : ""}` : "";
   $("#issues").innerHTML = issues.map((s) => `<li>⚠︎ ${esc(s)}</li>`).join("");

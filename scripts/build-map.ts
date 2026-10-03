@@ -105,10 +105,14 @@ const TRAINER_SUBTYPE: Record<string, string> = {
 const isMain = (e: EnCard) => /^\d+$/.test(e.number) && (!e.setOfficial || Number(e.number) <= e.setOfficial);
 const isRegular = (e: EnCard) => !UNMARKED_SETS.has(e.setId);
 const UNMARKED_SETS = new Set(["30th", "30th-c"]);
+// Promos are only chosen when nothing else exists (or when converting a promo, see sameArt).
+const isPromoEn = (e: EnCard) => e.setId === "svp" || e.setId === "mep";
+const isPromoId = (c: IdCard) => /-P$/.test(c.setCode);
 function canonical(prints: EnCard[]): EnCard {
   return [...prints].sort(
     (a, b) =>
       Number(!!b.image) - Number(!!a.image) || // a picture beats none (TCGdex lacks MEE energy art)
+      Number(isPromoEn(a)) - Number(isPromoEn(b)) ||
       Number(isRegular(b)) - Number(isRegular(a)) ||
       Number(isMain(b)) - Number(isMain(a)) ||
       b.releaseDate.localeCompare(a.releaseDate) ||
@@ -196,8 +200,12 @@ function artDistance(c: IdCard, e: EnCard): number | null {
 }
 // Prefer the closest artwork. Reprints often reuse the same art (TWM and ASC Dragapult ex),
 // so prints within a few bits of the best count as ties and the usual canonical rules pick.
+// A promo is only an art match for a promo: a regular print beats a promo that happens to share its art.
 function sameArt(c: IdCard, prints: EnCard[]): { en: EnCard } | null {
-  const scored = prints.map((e) => ({ e, d: artDistance(c, e) })).filter((x) => x.d !== null) as { e: EnCard; d: number }[];
+  const scored = prints
+    .filter((e) => isPromoId(c) || !isPromoEn(e))
+    .map((e) => ({ e, d: artDistance(c, e) }))
+    .filter((x) => x.d !== null) as { e: EnCard; d: number }[];
   if (!scored.length) return null;
   const best = Math.min(...scored.map((x) => x.d));
   return { en: canonical(scored.filter((x) => x.d <= best + 4).map((x) => x.e)) };
@@ -209,6 +217,7 @@ const idArtOf = new Map<string, { index: number; distance: number }>();
 rows.forEach((r, index) => {
   if (r.status !== "matched") return;
   for (const e of r.en) {
+    if (isPromoId(r.id) && !isPromoEn(e)) continue; // same rule as sameArt: promos only stand in for promos
     const d = artDistance(r.id, e);
     if (d === null) continue;
     const cur = idArtOf.get(e.id);

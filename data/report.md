@@ -1,6 +1,6 @@
 # Match report
 
-Generated 2026-10-03T03:13:16.538Z. Indonesian Standard prints: 4152.
+Generated 2026-10-03T03:16:50.136Z. Indonesian Standard prints: 4152.
 
 | Category | Matched | Ambiguous | Unmatched |
 |---|---|---|---|
@@ -9,7 +9,7 @@ Generated 2026-10-03T03:13:16.538Z. Indonesian Standard prints: 4152.
 | Energy | 163 | 0 | 0 |
 | **Total** | 4132 | 0 | 20 |
 
-Same-art English print found for 3717 of 4132 matched Indonesian prints.
+Same-art English print found for 3651 of 4132 matched Indonesian prints.
 
 ## Not matched or ambiguous
 

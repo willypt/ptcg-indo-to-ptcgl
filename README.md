@@ -19,7 +19,7 @@ As of 2026-10-03: **4,132 of 4,152** Standard Indonesian prints (99.5%) are matc
 - The newest Mega Evolution promos (`M-P 166–182`)
 - Three promo Trainers: Simbol Kemenangan, Gris, Deura
 
-Spot checks of the automatically tie-broken matches all came out correct. 3,717 of the matched prints also have an English print with the same artwork.
+Spot checks of the automatically tie-broken matches all came out correct. 3,651 of the matched prints also have a non-promo English print with the same artwork.
 
 ## Why it isn't a simple lookup
 
