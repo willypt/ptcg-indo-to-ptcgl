@@ -152,7 +152,8 @@
 <script>
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const norm = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[’`]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
+// Names copied from the official Indonesian site (and Pokepedia) can carry invisible zero-width characters.
+const norm = (s) => s.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[\u200b-\u200d\u2060\ufeff]/g, "").replace(/[\u2019`]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
 const num = (n) => String(n ?? "").replace(/^0+(?=\d)/, "").toLowerCase();
 
 // PTCG Live writes basic energy as "Basic {R} Energy"; TCGdex names it "Fire Energy".
@@ -192,7 +193,7 @@ function pickId(ids) {
 function parseLines(text) {
   const out = [];
   for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
+    const line = raw.replace(/[\u200b-\u200d\u2060\ufeff]/g, "").trim();
     if (!line || /^(pok[eé]mon|trainer|energy|energi|total)( cards)?\s*:\s*\d*\s*$/i.test(line)) continue;
     // Collector numbers can be letters too (Indonesian basic Energy: "SVTS PSY"),
     // may carry the set size (Pokepedia: "035/193", "255/SV-P"),
