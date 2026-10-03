@@ -6,7 +6,11 @@
     "scrape:id": "bun scripts/scrape-id.ts",
     "fetch:en": "bun scripts/fetch-en.ts",
     "build": "bun scripts/build-map.ts",
-    "all": "bun run scrape:id && bun run fetch:en && bun run build",
-    "dev": "bunx serve docs"
+    "all": "bun run scrape:id && bun run fetch:en && bun run hash:art && bun run build",
+    "dev": "bunx serve docs",
+    "hash:art": "bun scripts/hash-art.ts"
+  },
+  "dependencies": {
+    "sharp": "^0.35.5"
   }
 }

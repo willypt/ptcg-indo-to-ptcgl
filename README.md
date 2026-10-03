@@ -27,7 +27,7 @@ Indonesian sets follow the Japanese release structure, not the English one. Set 
 
 Name differences between the two languages live in `data/pokemon-names.json`: trainer owners (`<Tim Roket>` = Team Rocket's, `<Mistika>` = Iono's) and forms ("Ogerpon Topeng Teal" = Teal Mask Ogerpon). When two different English cards share the same stats (the 30th Celebration Pikachus, for example), the matcher compares regulation mark, attack names left in English, and the numbers in the effect text. The few it still can't separate are pinned by hand in `data/overrides.json`.
 
-Cards with the same name and effect are interchangeable in play, so a match can point to several English prints. Deck exports use one *canonical* print: a regular expansion over special sets, main-set numbering over secret rares, then the most recent set.
+Cards with the same name and effect are interchangeable in play, so a match can point to several English prints. To keep the exact print, the converter compares artwork: every card image gets a perceptual hash (`scripts/hash-art.ts`, of the art window and of the whole card), and the English print whose art matches the Indonesian one is used. On known pairs, same-art prints scored 0–8 out of 64 and different art 24+, so the cut-off is 12. When no English print shares the art (Asia-only artwork, for example), the converter falls back to a *canonical* print: a regular expansion over special sets, main-set numbering over secret rares, then the most recent set. The browse view labels each row "same art" or "different art".
 
 ## Data sources
 
@@ -41,6 +41,7 @@ Requires [Bun](https://bun.sh).
 ```sh
 bun run scrape:id   # Indonesian Standard cards → data/id-cards.json (~20 min first run, cached after)
 bun run fetch:en    # English H/I/J cards → data/en-cards.json
+bun run hash:art    # perceptual hashes of every card image → data/art-hashes.json (~40 min first run, cached after)
 bun run build       # match → data/map.json, docs/map.json, data/report.md
 bun run dev         # serve docs/ locally
 ```
@@ -49,6 +50,7 @@ When a new Indonesian set releases, re-run all three steps. Any new trainer name
 
 ## Deck list formats
 
+- Pokepedia's Indonesian format is read and written as-is: `3 Snorunt MA3 035/193`, `Perintah Bos [Ghetsis]`, `Energi Dasar [Psikis]`, card-count headers and `Total: 60`.
 - English side: PTCG Live export format, `4 Mega Gardevoir ex MEG 60`. `Basic {P} Energy` and `Psychic Energy` are both accepted.
 - Indonesian side: the same shape with Indonesian set codes, `4 Mega Gardevoir ex MA1 060`. Set and number are optional; a name alone picks any matching print.
 

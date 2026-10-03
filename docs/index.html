@@ -62,6 +62,20 @@
   .stat .n { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
   a { color: var(--accent); }
   footer { margin-top: 32px; color: var(--muted); font-size: 13px; }
+  .deckview { margin-top: 16px; }
+  .decks { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  @media (max-width: 760px) { .decks { grid-template-columns: 1fr; } }
+  .decklabel { margin-bottom: 6px; font-weight: 600; }
+  .deckgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+  .tile { position: relative; border-radius: 5px; aspect-ratio: 63 / 88; background: var(--bg); border: 2px solid transparent; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; }
+  .tile .n { position: absolute; right: 3px; bottom: 3px; background: rgba(0,0,0,.78); color: #fff; font: 600 12px/1 system-ui, sans-serif; padding: 3px 6px; border-radius: 99px; }
+  .tile.diffart { border-color: var(--accent); }
+  .tile.missing { display: grid; place-items: center; border: 2px dashed var(--bad); color: var(--bad); font-size: 11px; text-align: center; padding: 4px; }
+  .tile.approx img { opacity: .45; }
+  .tile.energy { display: grid; place-items: center; color: #fff; font: 600 12px/1.2 system-ui, sans-serif; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+  .tile.missing.noimg { border-color: var(--border); color: var(--muted); }
+  .tile.hl { outline: 3px solid var(--text); outline-offset: 1px; }
 </style>
 </head>
 <body>
@@ -97,6 +111,17 @@
         <div class="row"><button class="btn primary" id="copy">Copy</button><span class="muted" id="summary"></span></div>
         <ul class="issues" id="issues"></ul>
       </div>
+    </div>
+    <div class="card deckview" id="deckview" hidden>
+      <div class="row" style="margin-top:0;justify-content:space-between">
+        <label class="h" style="margin:0">Deck images</label>
+        <span class="muted" id="artsummary"></span>
+      </div>
+      <div class="decks">
+        <div><div class="muted decklabel">Original</div><div class="deckgrid" id="deckFrom"></div></div>
+        <div><div class="muted decklabel">Converted</div><div class="deckgrid" id="deckTo"></div></div>
+      </div>
+      <p class="muted">Cards sit in the same spot in both decks. Hover one to highlight its counterpart. An orange outline means the converted print has different artwork. Faded originals are stand-in pictures: that exact print (often an older reprint) isn't in the data, so its art can't be compared.</p>
     </div>
   </section>
 
@@ -243,30 +268,38 @@ function convert(auto = false) {
   const lines = parseLines($("#in").value);
   const result = new Map(); // key -> {count, text, cat}
   const issues = [];
+  const pairs = []; // one per input line, for the deck images: {count, from, to, sameArt}
+  const idImg = (c) => c.image;
+  const enImg = (e) => (e.image ? `${e.image}/low.webp` : null);
   for (const l of lines) {
     if (l.error) { issues.push(`${l.raw} — ${l.error}`); continue; }
     if (dir === "id2en") {
       const i = findId(l);
-      if (i === undefined) { issues.push(`${l.raw} — not an Indonesian Standard card (check the spelling)`); continue; }
+      if (i === undefined) { issues.push(`${l.raw} — not an Indonesian Standard card (check the spelling)`); pairs.push({ count: l.count, label: l.name }); continue; }
       const c = DATA.id[i];
       if (l.set && c.set.toLowerCase() !== l.set.toLowerCase() && c.category === "Pokemon")
         issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${c.name} ${c.set} ${c.number}.`);
-      if (c.status !== "matched") { issues.push(`${l.raw} — ${c.status}: ${c.reason}`); continue; }
+      if (c.status !== "matched") { issues.push(`${l.raw} — ${c.status}: ${c.reason}`); pairs.push({ count: l.count, label: c.name, from: idImg(c) }); continue; }
       const e = DATA.en[c.canonical];
+      pairs.push({ count: l.count, label: c.name, from: idImg(c), to: enImg(e), toLabel: `${e.name} ${e.set} ${e.number}`, sameArt: c.sameArt });
       const text = `${e.name} ${e.set} ${e.number}`;
       const cur = result.get(text) ?? { count: 0, text, cat: c.category };
       cur.count += l.count; result.set(text, cur);
     } else {
       const eid = findEn(l);
       const grp = eid && groups.get("en:" + eid);
-      if (!eid) { issues.push(`${l.raw} — not an English Standard (H/I/J) card`); continue; }
-      if (!grp || !grp.id.length) { issues.push(`${l.raw} — no Indonesian print of this card yet`); continue; }
+      if (!eid) { issues.push(`${l.raw} — not an English Standard (H/I/J) card`); pairs.push({ count: l.count, label: l.name }); continue; }
+      if (!grp || !grp.id.length) { issues.push(`${l.raw} — no Indonesian print of this card yet`); pairs.push({ count: l.count, label: l.name, from: enImg(DATA.en[eid]) }); continue; }
       const e = DATA.en[eid];
       // Pokémon with one name can be different cards, so say when the print itself wasn't found.
       if (l.set && e.set?.toLowerCase() !== l.set.toLowerCase() && DATA.id[grp.id[0]].category === "Pokemon")
         issues.push(`${l.raw} — this print isn't in the data yet, so it was matched by name only. Check it's the same card as ${e.name} ${e.set} ${e.number}.`);
-      const c = DATA.id[pickId(grp.id)];
+      // Same-art Indonesian print when one exists, else the standard one.
+      const c = DATA.id[e.idArt ?? pickId(grp.id)];
       const text = `${c.name} ${c.set} ${c.printed ?? c.number}`;
+      // The input print's own image only when that exact print was found; otherwise it's a stand-in.
+      const exact = l.set && e.set?.toLowerCase() === l.set.toLowerCase();
+      pairs.push({ count: l.count, label: l.name, from: enImg(e), fromApprox: !exact, to: idImg(c), toLabel: text, sameArt: exact && e.idArt != null });
       const cur = result.get(text) ?? { count: 0, text, cat: c.category };
       cur.count += l.count; result.set(text, cur);
     }
@@ -286,7 +319,38 @@ function convert(auto = false) {
   $("#out").value = out.join("\n");
   $("#summary").textContent = lines.length ? `${total} cards converted${issues.length ? `, ${issues.length} line(s) need attention` : ""}` : "";
   $("#issues").innerHTML = issues.map((s) => `<li>⚠︎ ${esc(s)}</li>`).join("");
+  renderDecks(pairs);
 }
+
+function renderDecks(pairs) {
+  $("#deckview").hidden = !pairs.length;
+  // TCGdex has no pictures of English basic Energy, so draw a colored tile for those.
+  const ENERGY_COLOR = { Grass: "#3f9b4a", Fire: "#e2552d", Water: "#2f8fd8", Lightning: "#e8c22a", Psychic: "#9b59b6", Fighting: "#c0702f", Darkness: "#2f3a4a", Metal: "#8d99a6" };
+  const energyType = (title) => enAlias(title.replace(/ \(stand-in.*$/, "")).match(/\b(Grass|Fire|Water|Lightning|Psychic|Fighting|Darkness|Metal) Energy\b/)?.[1];
+  const tile = (img, count, title, i, cls = "") =>
+    !img && energyType(title)
+      ? `<div class="tile energy" data-i="${i}" title="${esc(title)}" style="background:${ENERGY_COLOR[energyType(title)]}"><span>${esc(energyType(title))}<br>Energy</span><span class="n">×${count}</span></div>`
+      : img
+      ? `<div class="tile ${cls}" data-i="${i}" title="${esc(title)}"><img loading="lazy" src="${esc(img)}" alt="${esc(title)}"><span class="n">×${count}</span></div>`
+      : `<div class="tile missing ${cls}" data-i="${i}" title="${esc(title)}">${esc(title)}<br>${cls.includes("noimg") ? "no image" : "not converted"}</div>`;
+  // A stand-in original (exact print not in the data) can't be art-compared, so it's dimmed and not outlined.
+  const fromCls = (p) => (!p.from && p.toLabel ? "noimg" : p.fromApprox ? "approx" : "");
+  const toCls = (p) => (p.toLabel && !p.to ? "noimg" : p.to && p.from && !p.fromApprox && !p.sameArt ? "diffart" : "");
+  $("#deckFrom").innerHTML = pairs
+    .map((p, i) => tile(p.from, p.count, p.fromApprox ? `${p.label} (stand-in picture: this exact print isn't in the data)` : p.label, i, fromCls(p)))
+    .join("");
+  $("#deckTo").innerHTML = pairs.map((p, i) => tile(p.to, p.count, p.toLabel ?? p.label, i, toCls(p))).join("");
+  const converted = pairs.filter((p) => p.from && p.to && !p.fromApprox); // art can only be compared between real pictures
+  const same = converted.filter((p) => p.sameArt).length;
+  $("#artsummary").textContent = converted.length ? `${same} of ${converted.length} lines kept the same artwork` : "";
+}
+
+// Hovering a card highlights the card in the same spot in the other deck.
+document.addEventListener("mouseover", (ev) => {
+  const t = ev.target.closest?.(".deckgrid .tile");
+  document.querySelectorAll(".tile.hl").forEach((x) => x.classList.remove("hl"));
+  if (t) document.querySelectorAll(`.deckgrid .tile[data-i="${t.dataset.i}"]`).forEach((x) => x.classList.add("hl"));
+});
 
 function renderBrowse() {
   const q = norm($("#q").value);
@@ -304,7 +368,7 @@ function renderBrowse() {
       <td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.name)}</a><div class="code">${esc(c.set)} ${esc(c.number)} · ${esc(c.mark)}</div></td>
       <td>${en?.image ? `<img loading="lazy" src="${esc(en.image)}/low.webp" alt="">` : ""}</td>
       <td>${en ? `${esc(en.name)}<div class="code">${esc(en.set)} ${esc(en.number)} · ${esc(en.setName)}</div>${others}` : `<span class="muted">${esc(c.reason)}</span>`}</td>
-      <td><span class="badge b-${c.status}">${c.status}</span></td>
+      <td><span class="badge b-${c.status}">${c.status}</span>${c.status === "matched" ? `<div class="code" style="margin-top:4px">${c.sameArt ? "same art" : "different art"}</div>` : ""}</td>
     </tr>`;
   }).join("");
   $("#more").textContent = rows.length > LIMIT ? `Showing ${LIMIT} of ${rows.length}. Refine the search to see more.` : `${rows.length} card(s)`;

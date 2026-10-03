@@ -1,6 +1,6 @@
 # Match report
 
-Generated 2026-10-03T02:46:58.074Z. Indonesian Standard prints: 4152.
+Generated 2026-10-03T02:56:37.441Z. Indonesian Standard prints: 4152.
 
 | Category | Matched | Ambiguous | Unmatched |
 |---|---|---|---|
@@ -8,6 +8,8 @@ Generated 2026-10-03T02:46:58.074Z. Indonesian Standard prints: 4152.
 | Trainer | 858 | 0 | 8 |
 | Energy | 163 | 0 | 0 |
 | **Total** | 4132 | 0 | 20 |
+
+Same-art English print found for 3717 of 4132 matched Indonesian prints.
 
 ## Not matched or ambiguous
 
